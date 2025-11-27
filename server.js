@@ -18,8 +18,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/health', (_req, res) => res.json({ok: true, startedAt: SERVER_STARTED_AT}));
 
 // --- Game settings ---
-const GRID_X = 48; // arena width
-const GRID_Y = 32; // arena height
+const GRID_X = 70; // arena width
+const GRID_Y = 50; // arena height
 const TICK_MS = 150;
 const START_LEN = 4;
 const MAX_PLAYERS = 12; // shared arena capacity
@@ -43,7 +43,7 @@ const FRUIT_TYPES = [
     'apple.png', 'banana.png', 'cake.png', 'cherries.png', 'chicken.png',
     'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png'
 ];
-const MIN_FRUITS = 4;
+const MIN_FRUITS = 8;
 
 function randomFruitType() {
     return FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];

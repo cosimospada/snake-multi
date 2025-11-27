@@ -152,7 +152,7 @@
         const gridY = state.grid.y;
         // Use the available window size, but keep cells square
         // Use the smaller cell size that fits both width and height
-        const maxWidth = Math.min(window.innerWidth - 40, 900);
+        const maxWidth = Math.min(window.innerWidth - 40, 1100);
         const maxHeight = Math.min(window.innerHeight - 180, 900);
         const cellSize = Math.floor(Math.min(maxWidth / gridX, maxHeight / gridY));
         canvas.width = cellSize * gridX;
