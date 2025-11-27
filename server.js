@@ -27,7 +27,8 @@ const MAX_PLAYERS = 12; // shared arena capacity
 // Map<roomId, Room>
 const rooms = new Map();
 
-const SNAKEY_NAMES = ['Slinky','Venom','Anaconda','Medusa','Kaa','Slytherin','Mamba','Rattler','Python','Basilisk','Hydra','Quetzalcoatl','Snakey McSnakeface','Sir Väs'];
+const SNAKEY_NAMES = ['Slinky', 'Venom', 'Anaconda', 'Medusa', 'Kaa', 'Slytherin', 'Mamba', 'Rattler', 'Python', 'Basilisk', 'Hydra', 'Quetzalcoatl', 'Snakey McSnakeface', 'Sir Väs'];
+
 function assignSnakeyName(room, playerId) {
     if (!room.playerNames) room.playerNames = {};
     if (!room.playerNames[playerId]) {
@@ -40,7 +41,7 @@ function assignSnakeyName(room, playerId) {
 
 const FRUIT_TYPES = [
     'apple.png', 'banana.png', 'cake.png', 'cherries.png', 'chicken.png',
-    'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png'
+    'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png'
 ];
 const MIN_FRUITS = 4;
 
@@ -96,6 +97,7 @@ function spawnSnake(grid_x, grid_y, len) {
         color: randomColor(),
         bombs: 0,
         respawns: 0,
+        shields: 0
     };
 }
 
@@ -109,8 +111,13 @@ function wrap(v, grid) {
     return (v + grid) % grid;
 }
 
-function wrapX(v) { return (v + GRID_X) % GRID_X; }
-function wrapY(v) { return (v + GRID_Y) % GRID_Y; }
+function wrapX(v) {
+    return (v + GRID_X) % GRID_X;
+}
+
+function wrapY(v) {
+    return (v + GRID_Y) % GRID_Y;
+}
 
 
 function stepRoom(room) {
@@ -131,7 +138,20 @@ function stepRoom(room) {
         if (!s.alive) continue;
         const head = {x: wrapX(s.body[0].x + s.dir.x, GRID_X), y: wrapY(s.body[0].y + s.dir.y, GRID_Y)};
         s.body.unshift(head);
-        const grow = Array.isArray(room.food) && room.food.some(f => f.x === head.x && f.y === head.y);
+        // Determine if the head is on a fruit and what type
+        let grow = false;
+        let fruitType = null;
+        for (let i = 0; i < room.food.length; i++) {
+            const f = room.food[i];
+            if (s.body[0].x === f.x && s.body[0].y === f.y) {
+                fruitType = f.type;
+                // Only regular food causes growth
+                if (f.type !== 'firecracker.png' && f.type !== 'shield.png') {
+                    grow = true;
+                }
+                break;
+            }
+        }
         if (!grow) s.body.pop(); // tail removed before collision checks
 
         const key = head.x + ',' + head.y;
@@ -194,31 +214,44 @@ function stepRoom(room) {
     // Remove eaten fruits and respawn
     eatenFruits.sort((a, b) => b - a); // remove from end
     for (const idx of eatenFruits) room.food.splice(idx, 1);
+
+    function isReallyFood(item) {
+        return item.type !== 'firecracker.png' && item.type !== 'shield.png';
+    }
+
     if (eaters.length) {
         for (const {pid, fruit} of eaters) {
             const s = room.snakes.get(pid);
             if (s) {
-                s.score += 1;
-                s.bombs = (s.bombs || 0) + 1;
+                // Only regular food increases score and bombs
+                if (fruit.type !== 'firecracker.png' && fruit.type !== 'shield.png') {
+                    s.score += 1;
+                    s.bombs = (s.bombs || 0) + 1;
+                }
+                if (fruit.type === 'shield.png') {
+                    s.shields += 1;
+                }
                 // Firecracker logic: if the fruit is a firecracker, treat as bomb hit
-                if (fruit.type === 'firecracker.png' && s.body.length > 1) {
-                    // Cut the snake in half, but always leave at least the head
-                    const newLen = Math.max(0, s.body.length - 2);
-                    s.body = s.body.slice(0, newLen);
-                    // Trigger the explosion ring for all clients at this location
-                    const CANVAS_SIZE_X = 700; // must match client canvas width
-                    const CANVAS_SIZE_Y = 700; // must match client canvas height
-                    const gridCellX = CANVAS_SIZE_X / GRID_X;
-                    const gridCellY = CANVAS_SIZE_Y / GRID_Y;
-                    const x = (fruit.x + 0.5) * gridCellX;
-                    const y = (fruit.y + 0.5) * gridCellY;
-                    io.to(room.id).emit('ring', {x, y});
-
+                if (fruit.type === 'firecracker.png' && s.body.length >= 1) {
+                    if (s.shields > 0) {
+                        s.shields -= 1;
+                    } else {
+                        const newLen = Math.max(0, s.body.length - 2);
+                        s.body = s.body.slice(0, newLen);
+                        // Trigger the explosion ring for all clients at this location
+                        const CANVAS_SIZE_X = 700; // must match client canvas width
+                        const CANVAS_SIZE_Y = 700; // must match client canvas height
+                        const gridCellX = CANVAS_SIZE_X / GRID_X;
+                        const gridCellY = CANVAS_SIZE_Y / GRID_Y;
+                        const x = (fruit.x + 0.5) * gridCellX;
+                        const y = (fruit.y + 0.5) * gridCellY;
+                        io.to(room.id).emit('ring', {x, y});
+                    }
                     if (s.body.length < 1) {
                         s.alive = false;
                     }
                 }
-                // If snake runs out of segments, it's game over
+                // If snake runs out of segments, it's game over pal
                 if (s.body.length < 1) {
                     s.alive = false;
                 }
@@ -231,14 +264,14 @@ function stepRoom(room) {
             occupied.push(...s.body);
         }
         occupied.push(...room.food);
-        while (room.food.filter(f => f.type !== 'firecracker.png').length < MIN_FRUITS) {
+        while (room.food.filter(f => isReallyFood(f)).length < MIN_FRUITS) {
             const fruit = randomFruit(occupied, GRID_X, GRID_Y);
-            // Only count non-firecrackers toward the minimum
-            if (fruit.type !== 'firecracker.png') {
+            // Only count non-firecrackers and non-shields toward the minimum
+            if (isReallyFood(fruit)) {
                 room.food.push(fruit);
                 occupied.push(fruit);
             } else {
-                // Firecrackers can be added without limit
+                // Firecrackers and shields can be added without limit!
                 room.food.push(fruit);
                 occupied.push(fruit);
             }
@@ -262,7 +295,8 @@ setInterval(() => {
                 alive: s.alive,
                 score: s.score,
                 respawns: s.respawns || 0,
-                segments: s.body.length
+                segments: s.body.length,
+                shields: s.shields || 0
             })),
             leaderboard: [...room.snakes].map(([playerId, s]) => ({
                 id: playerId,
@@ -270,7 +304,8 @@ setInterval(() => {
                 respawns: s.respawns || 0,
                 segments: s.body.length,
                 alive: s.alive,
-                color: s.color
+                color: s.color,
+                shields: s.shields || 0
             })).sort((a, b) => b.segments - a.segments || b.respawns - a.respawns)
         };
         io.to(room.id).emit('state', payload);
@@ -336,26 +371,27 @@ io.on('connection', (socket) => {
         const snake = room.snakes.get(socket.id);
         if (!snake || !snake.alive || !snake.bombs || snake.bombs < 1) return; // must have at least 1 bomb
         snake.bombs -= 1;
-        // Bomb effect: only snakes whose HEAD is within the ring lose two segments
+        // Bomb effect: only snakes whose HEAD is within the ring lose two segments (or die)
         const RING_RADIUS_CELLS = 2; // radius in grid cells
         for (const s of room.snakes.values()) {
             if (!s.alive) continue;
+            if (typeof s.shields !== 'number') s.shields = 0;
             const seg = s.body[0];
             const dx = seg.x + 0.5 - gx;
             const dy = seg.y + 0.5 - gy;
-            if (Math.sqrt(dx * dx + dy * dy) <= RING_RADIUS_CELLS && s.body.length > 1) {
-                const newLen = Math.max(0, s.body.length - 2);
-                s.body = s.body.slice(0, newLen);
+            if (Math.sqrt(dx * dx + dy * dy) <= RING_RADIUS_CELLS && s.body.length >= 1) {
+                if (s.shields > 0) {
+                    s.shields -= 1;
+                } else {
+                    const newLen = Math.max(0, s.body.length - 2);
+                    s.body = s.body.slice(0, newLen);
+                }
             }
             if (s.body.length < 1) {
                 s.alive = false;
             }
         }
-        // For the explosion ring animation, send pixel coordinates for display
-        const CANVAS_SIZE_X = 700;
-        const CANVAS_SIZE_Y = 700;
-        const gridCellX = CANVAS_SIZE_X / GRID_X;
-        const gridCellY = CANVAS_SIZE_Y / GRID_Y;
+        // For the explosion ring animation, send grid coordinates for display
         io.to(roomId).emit('ring', {gx, gy});
     });
 
