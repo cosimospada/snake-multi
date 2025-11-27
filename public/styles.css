@@ -3,7 +3,7 @@
   --bg: #075312;
   --fg: #e6e6e6;
   --accent: #4ade80; /* green */
-  --accent2: #0d5003; /* blue */
+  --accent2: #0a4002; /* blue */
 }
 
 * { box-sizing: border-box; }
@@ -29,14 +29,15 @@ canvas {
 .hud { margin-top: 0.75rem; display: flex; gap: 0.5rem; align-items: center; justify-content: center; }
 button {
   background: var(--accent2);
-  color: #0b1020;
+  color: whitesmoke;
   border: none;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+    font-size: 16px;
 }
-button:hover { filter: brightness(1.05); }
+button:hover { filter: brightness(1.15); }
 .hint { opacity: 0.75; font-size: 0.9rem; margin-top: 0.5rem; }
 
 .main-row {
