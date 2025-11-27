@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Snakes and grenades</title>
+    <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<div class="wrap">
+    <h1>Snakes 'n' grenades</h1>
+    <span>You are playing as <strong id="playerName">a snake</strong></span>
+    <div class="main-row">
+        <canvas id="game" width="700" height="700"></canvas>
+        <div id="leaderboard" class="leaderboard"></div>
+    </div>
+    <div class="hud">
+        <span>Score: <strong id="score">0</strong></span>
+        <button id="resetBtn">Respawn</button>
+    </div>
+    <p class="hint">Use arrow keys or WASD! Watch out for the 🧨!</p>
+</div>
+<!-- Use server-provided Socket.IO client to avoid version mismatches -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="snake.js"></script>
+</body>
+</html>
