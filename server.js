@@ -367,7 +367,7 @@ io.on('connection', (socket) => {
         broadcastInfo(room);
     });
 
-    socket.on('ring', ({gx, gy}) => {
+    socket.on('ring', ({gx, gy, throwerId}) => {
         const snake = room.snakes.get(socket.id);
         if (!snake || !snake.alive || !snake.bombs || snake.bombs < 1) return; // must have at least 1 bomb
         snake.bombs -= 1;
@@ -391,8 +391,8 @@ io.on('connection', (socket) => {
                 s.alive = false;
             }
         }
-        // For the explosion ring animation, send grid coordinates for display
-        io.to(roomId).emit('ring', {gx, gy});
+        // For the explosion ring animation, send grid coordinates for display, and include throwerId
+        io.to(roomId).emit('ring', {gx, gy, throwerId: socket.id});
     });
 
     socket.on('disconnect', () => {

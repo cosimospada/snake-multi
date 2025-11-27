@@ -34,9 +34,6 @@
     let me = {id: null, color: '#6cf'};
     let paused = false;
 
-    let nextStateTime = 0;
-    let serverTickInterval = 100; // fallback, will be updated
-
     let ring = null; // {x, y, start: timestamp}
     const RING_DURATION = 400; // ms
 
@@ -51,12 +48,12 @@
         const cellY = canvas.height / gridY;
         const gx = x / cellX;
         const gy = y / cellY;
-        socket.emit('ring', {gx, gy});
+        socket.emit('ring', {gx, gy, throwerId: me.id});
     });
 
     // Listen for ring events from server (from any player)
-    socket.on('ring', ({gx, gy}) => {
-        // Play explosion sound"
+    socket.on('ring', ({gx, gy, throwerId}) => {
+        // Play explosion sound
         try {
             explosionSound.pause();
             explosionSound.currentTime = 0;
@@ -68,10 +65,18 @@
         const cellY = canvas.height / gridY;
         const x = gx * cellX;
         const y = gy * cellY;
-        ring = {x, y, start: performance.now()};
+        // Find thrower head position
+        let x1 = null, y1 = null;
+        if (throwerId && state && state.players) {
+            const thrower = state.players.find(p => p.id === throwerId);
+            if (thrower && thrower.body && thrower.body.length > 0) {
+                x1 = (thrower.body[0].x + 0.5) * cellX;
+                y1 = (thrower.body[0].y + 0.5) * cellY;
+            }
+        }
+        ring = {x, y, start: performance.now(), x1, y1};
         requestAnimationFrame(drawRingAnim);
     });
-
 
     // Socket diagnostics
     socket.on('connect', () => console.log('[socket] connected', socket.id));
@@ -314,6 +319,21 @@
         const maxRadius = 40;
         const radius = 16 + progress * (maxRadius - 16);
         const alpha = 1 - progress;
+        // Draw the bomb line if present
+        if (ring.x1 !== null && ring.y1 !== null) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            const grad = ctx.createLinearGradient(ring.x1, ring.y1, ring.x, ring.y);
+            grad.addColorStop(0, 'orange');
+            grad.addColorStop(1, 'yellow');
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(ring.x1, ring.y1);
+            ctx.lineTo(ring.x, ring.y);
+            ctx.stroke();
+            ctx.restore();
+        }
         drawExplosionRing(ring.x, ring.y, radius, alpha);
         requestAnimationFrame(drawRingAnim);
     }
