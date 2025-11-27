@@ -133,6 +133,10 @@
     socket.on('joined', (info) => {
         me.id = info.playerId;
         me.color = info.color;
+        if (info.name) {
+            const playerNameEl = document.getElementById('playerName');
+            if (playerNameEl) playerNameEl.textContent = info.name;
+        }
         console.log('[joined]', info);
     });
 

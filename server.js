@@ -312,7 +312,7 @@ io.on('connection', (socket) => {
 
     broadcastInfo(room);
 
-    socket.emit('joined', {playerId: socket.id, color: snake.color});
+    socket.emit('joined', {playerId: socket.id, color: snake.color, name: room.playerNames[socket.id]});
 
     socket.on('input', (dir) => {
         if (!dir || typeof dir.x !== 'number' || typeof dir.y !== 'number') return;
