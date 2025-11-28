@@ -43,7 +43,7 @@ const FRUIT_TYPES = [
     'apple.png', 'banana.png', 'cake.png', 'cherries.png', 'chicken.png',
     'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png', 'crown.png'
 ];
-const MIN_FRUITS = 30;
+const MIN_FRUITS = 10;
 
 function randomFruitType() {
     return FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
