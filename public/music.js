@@ -389,3 +389,43 @@ function startMusicOnce() {
 }
 window.addEventListener('mousedown', startMusicOnce);
 window.addEventListener('touchstart', startMusicOnce);
+
+// --- Mute/Unmute and Volume Control ---
+var isMuted = false;
+var musicBtn = document.getElementById('musicToggleBtn');
+var musicVolume = document.getElementById('musicVolume');
+
+// Add a volume slider if not present
+if (!musicVolume) {
+    musicVolume = document.createElement('input');
+    musicVolume.type = 'range';
+    musicVolume.id = 'musicVolume';
+    musicVolume.min = 0;
+    musicVolume.max = 100;
+    musicVolume.value = 50;
+    musicVolume.style.marginLeft = '1em';
+    var hud = document.querySelector('.hud');
+    if (hud) hud.appendChild(musicVolume);
+}
+
+// Set initial volume
+conductor.setMasterVolume(musicVolume.value / 100);
+
+if (musicBtn) {
+    musicBtn.textContent = 'Mute Music';
+    musicBtn.addEventListener('click', function() {
+        if (isMuted) {
+            player.unmute();
+            isMuted = false;
+            musicBtn.textContent = 'Mute Music';
+        } else {
+            player.mute();
+            isMuted = true;
+            musicBtn.textContent = 'Unmute Music';
+        }
+    });
+}
+
+musicVolume.addEventListener('input', function() {
+    conductor.setMasterVolume(musicVolume.value / 100);
+});
