@@ -23,6 +23,7 @@ snare.setVolume(65);
 
 setHighhat();   // all the time
 
+partMarioIntro();
 part1();
 part1();
 part1();
@@ -33,6 +34,8 @@ part2WithSnares();
 part2WithSnares();
 partMarioDungeon();
 partMarioDungeon();
+partMarioDungeonWithSnare();
+partMarioDungeonWithSnare();
 
 function part1() {
     lead4Bars();
@@ -85,6 +88,31 @@ function part2WithSnares() {
     kickdrum2bars();
 
     snare4Bars();
+}
+
+function partMarioIntro() {
+    bass2BarsLow();
+    bass2BarsLow();
+
+    lead1BarRest();
+    lead1BarRest();
+    lead1BarRest();
+    lead1BarRest();
+
+    mid1BarRest();
+    mid1BarRest();
+    mid1BarRest();
+    mid1BarRest();
+
+    kickdrum1BarRest();
+    kickdrum1BarRest();
+    kickdrum1BarRest();
+    kickdrum1BarRest();
+
+    snare1BarRest();
+    snare1BarRest();
+    snare1BarRest();
+    snare1BarRest();
 }
 
 function partMarioDungeon() {
@@ -159,7 +187,7 @@ function partMarioDungeonWithSnare() {
     snare4Bars();
 }
 
-function mid4bars(){
+function mid4bars() {
     mid
         .note('whole', 'F3')
         .note('whole', 'F3')
@@ -197,11 +225,11 @@ function bass2bars() {
 function bass2BarsLow() {
     bass
         .note('quarter', 'F2')
-        .note('quarter', 'F2')
+        .note('quarter', 'F3')
         .note('quarter', 'D2')
-        .note('quarter', 'D2')
+        .note('quarter', 'D3')
         .note('quarter', 'D#2')
-        .note('quarter', 'D#2')
+        .note('quarter', 'D#3')
         .rest('quarter')
         .rest('quarter')
     ;
@@ -211,11 +239,11 @@ function bass2BarsLow() {
 function bass2BarsHigh() {
     bass
         .note('quarter', 'A#2')
-        .note('quarter', 'A#2')
+        .note('quarter', 'A#3')
         .note('quarter', 'G2')
-        .note('quarter', 'G2')
+        .note('quarter', 'G3')
         .note('quarter', 'G#2')
-        .note('quarter', 'G#2')
+        .note('quarter', 'G#3')
         .rest('quarter')
         .rest('quarter')
     ;
@@ -290,7 +318,6 @@ function lead4Bars() {
 }
 
 
-
 lead.repeat(400);
 mid.repeat(400);
 bass.repeat(400);
@@ -348,6 +375,13 @@ function snare1BarRest() {
     ;
 }
 
+function kickdrum1BarRest() {
+    kick
+        .rest('whole')
+        .rest('whole')
+    ;
+}
+
 function snare4Bars() {
     snare
         .rest('whole')
@@ -387,6 +421,7 @@ function startMusicOnce() {
     window.removeEventListener('mousedown', startMusicOnce);
     window.removeEventListener('touchstart', startMusicOnce);
 }
+
 window.addEventListener('mousedown', startMusicOnce);
 window.addEventListener('touchstart', startMusicOnce);
 
@@ -413,7 +448,7 @@ conductor.setMasterVolume(musicVolume.value / 100);
 
 if (musicBtn) {
     musicBtn.textContent = 'Mute Music';
-    musicBtn.addEventListener('click', function() {
+    musicBtn.addEventListener('click', function () {
         if (isMuted) {
             player.unmute();
             isMuted = false;
@@ -426,6 +461,6 @@ if (musicBtn) {
     });
 }
 
-musicVolume.addEventListener('input', function() {
+musicVolume.addEventListener('input', function () {
     conductor.setMasterVolume(musicVolume.value / 100);
 });
