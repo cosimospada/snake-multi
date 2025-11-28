@@ -305,7 +305,8 @@ setInterval(() => {
                 segments: s.body.length,
                 alive: s.alive,
                 color: s.color,
-                shields: s.shields || 0
+                shields: s.shields || 0,
+                bombs: s.bombs || 0
             })).sort((a, b) => b.segments - a.segments || b.respawns - a.respawns)
         };
         io.to(room.id).emit('state', payload);

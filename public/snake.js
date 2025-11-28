@@ -345,13 +345,14 @@
             el.innerHTML = '';
             return;
         }
-        let html = '<h2>Leaderboard</h2><table><thead><tr><th></th><th>Segments</th><th>Respawns</th><th>Shields</th></tr></thead><tbody>';
+        let html = '<h2>Leaderboard</h2><table><thead><tr><th></th><th>Segments</th><th>Respawns</th><th>Shields</th><th>Bombs</th></tr></thead><tbody>';
         for (const entry of leaderboard) {
             html += `<tr${entry.alive ? '' : ' class="dead"'}>`;
             html += `<td><span style="display:inline-block;width:1em;height:1em;background:${entry.color};border-radius:50%;margin-right:0.5em;"></span>${entry.name ? entry.name : entry.id.slice(0, 6)}</td>`;
             html += `<td>${entry.segments}</td>`;
             html += `<td>${entry.respawns}</td>`;
             html += `<td>${entry.shields || 0}</td>`;
+            html += `<td>${entry.bombs || 0}</td>`;
             html += '</tr>';
         }
         html += '</tbody></table>';
