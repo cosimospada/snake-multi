@@ -3,7 +3,7 @@
 // Use BandJS global constructor for compatibility with CDN version
 var conductor = new BandJS();
 // Set time signature and tempo
-conductor.setTempo(150);
+conductor.setTempo(155);
 conductor.setTimeSignature(2, 2);
 
 // Create an instrument using the default oscillators pack
@@ -36,6 +36,13 @@ partMarioDungeon();
 partMarioDungeon();
 partMarioDungeonWithSnare();
 partMarioDungeonWithSnare();
+
+lead.repeat(400);
+mid.repeat(400);
+bass.repeat(400);
+kick.repeat(400);
+snare.repeat(400);
+highhat.repeat(10000);
 
 function part1() {
     lead4Bars();
@@ -340,14 +347,6 @@ function lead4Bars() {
         .note('quarter', 'A#4')
     ;
 }
-
-
-lead.repeat(400);
-mid.repeat(400);
-bass.repeat(400);
-kick.repeat(400);
-snare.repeat(400);
-highhat.repeat(10000);
 
 // Tell the conductor everything is done
 var player = conductor.finish();
