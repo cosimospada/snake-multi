@@ -4,9 +4,6 @@
     const scoreEl = document.getElementById('score');
     const nameEl = document.getElementById('playerName');
     const resetBtn = document.getElementById('resetBtn');
-    const explosionSound = new Audio('explosion.mp3');
-    explosionSound.volume = 0.5; // adjust as needed
-
     const FRUIT_TYPES = [
         'apple.png', 'banana.png', 'cake.png', 'cherries.png', 'chicken.png',
         'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png'
@@ -51,14 +48,16 @@
         socket.emit('ring', {gx, gy, throwerId: me.id});
     });
 
+    // Helper: play explosion sound reliably
+    function playExplosionSound() {
+        const sound = new Audio('explosion.mp3');
+        sound.volume = 0.5;
+        sound.play();
+    }
+
     // Listen for ring events from server (from any player)
     socket.on('ring', ({gx, gy, throwerId}) => {
-        // Play explosion sound
-        try {
-            explosionSound.pause();
-            explosionSound.currentTime = 0;
-            explosionSound.play();
-        } catch (e) {}
+        playExplosionSound();
         const gridX = state.grid.x;
         const gridY = state.grid.y;
         const cellX = canvas.width / gridX;
