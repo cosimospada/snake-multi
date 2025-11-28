@@ -41,9 +41,9 @@ function assignSnakeyName(room, playerId) {
 
 const FRUIT_TYPES = [
     'apple.png', 'banana.png', 'cake.png', 'cherries.png', 'chicken.png',
-    'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png'
+    'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png', 'crown.png'
 ];
-const MIN_FRUITS = 8;
+const MIN_FRUITS = 30;
 
 function randomFruitType() {
     return FRUIT_TYPES[Math.floor(Math.random() * FRUIT_TYPES.length)];
@@ -149,6 +149,10 @@ function stepRoom(room) {
                 if (f.type !== 'firecracker.png' && f.type !== 'shield.png') {
                     grow = true;
                 }
+                // God mode: firecracker acts as food
+                if (f.type === 'firecracker.png' && s.godModeUntil && s.godModeUntil > Date.now()) {
+                    grow = true;
+                }
                 break;
             }
         }
@@ -223,17 +227,26 @@ function stepRoom(room) {
         for (const {pid, fruit} of eaters) {
             const s = room.snakes.get(pid);
             if (s) {
+                // GOD MODE: If crown is eaten, set godModeUntil
+                if (fruit.type === 'crown.png') {
+                    s.godModeUntil = Date.now() + 10000; // 10 seconds
+                }
                 // Only regular food increases score and bombs
-                if (fruit.type !== 'firecracker.png' && fruit.type !== 'shield.png') {
+                if (
+                    fruit.type !== 'firecracker.png' &&
+                    fruit.type !== 'shield.png' &&
+                    fruit.type !== 'crown.png'
+                ) {
                     s.score += 1;
                     s.bombs = (s.bombs || 0) + 1;
                 }
-                if (fruit.type === 'shield.png') {
-                    s.shields += 1;
-                }
-                // Firecracker logic: if the fruit is a firecracker, treat as bomb hit
+                // Firecracker logic: if the fruit is a firecracker
                 if (fruit.type === 'firecracker.png' && s.body.length >= 1) {
-                    if (s.shields > 0) {
+                    if (s.godModeUntil && s.godModeUntil > Date.now()) {
+                        // In god mode, treat as food
+                        s.score += 1;
+                        s.bombs = (s.bombs || 0) + 1;
+                    } else if (s.shields > 0) {
                         s.shields -= 1;
                     } else {
                         const newLen = Math.max(0, s.body.length - 2);
@@ -250,6 +263,9 @@ function stepRoom(room) {
                     if (s.body.length < 1) {
                         s.alive = false;
                     }
+                }
+                if (fruit.type === 'shield.png') {
+                    s.shields += 1;
                 }
                 // If snake runs out of segments, it's game over pal
                 if (s.body.length < 1) {
@@ -283,6 +299,12 @@ function stepRoom(room) {
 setInterval(() => {
     for (const room of rooms.values()) {
         if (!room.running) continue;
+        // Clear god mode if expired
+        for (const s of room.snakes.values()) {
+            if (s.godModeUntil && s.godModeUntil < Date.now()) {
+                delete s.godModeUntil;
+            }
+        }
         stepRoom(room);
         const payload = {
             grid: {x: GRID_X, y: GRID_Y},
@@ -296,7 +318,8 @@ setInterval(() => {
                 score: s.score,
                 respawns: s.respawns || 0,
                 segments: s.body.length,
-                shields: s.shields || 0
+                shields: s.shields || 0,
+                godMode: !!(s.godModeUntil && s.godModeUntil > Date.now())
             })),
             leaderboard: [...room.snakes].map(([playerId, s]) => ({
                 id: playerId,
@@ -306,7 +329,8 @@ setInterval(() => {
                 alive: s.alive,
                 color: s.color,
                 shields: s.shields || 0,
-                bombs: s.bombs || 0
+                bombs: s.bombs || 0,
+                godMode: !!(s.godModeUntil && s.godModeUntil > Date.now())
             })).sort((a, b) => b.segments - a.segments || b.respawns - a.respawns)
         };
         io.to(room.id).emit('state', payload);
@@ -370,13 +394,17 @@ io.on('connection', (socket) => {
 
     socket.on('ring', ({gx, gy, throwerId}) => {
         const snake = room.snakes.get(socket.id);
-        if (!snake || !snake.alive || !snake.bombs || snake.bombs < 1) return; // must have at least 1 bomb
-        snake.bombs -= 1;
+        // GOD MODE: allow unlimited bombs if in god mode
+        const inGodMode = snake && snake.godModeUntil && snake.godModeUntil > Date.now();
+        if (!snake || !snake.alive || (!inGodMode && (!snake.bombs || snake.bombs < 1))) return; // must have at least 1 bomb unless god mode
+        if (!inGodMode) snake.bombs -= 1;
         // Bomb effect: only snakes whose HEAD is within the ring lose two segments (or die)
         const RING_RADIUS_CELLS = 2; // radius in grid cells
         for (const s of room.snakes.values()) {
             if (!s.alive) continue;
             if (typeof s.shields !== 'number') s.shields = 0;
+            // GOD MODE: immune to bombs
+            if (s.godModeUntil && s.godModeUntil > Date.now()) continue;
             const seg = s.body[0];
             const dx = seg.x + 0.5 - gx;
             const dy = seg.y + 0.5 - gy;

@@ -160,14 +160,10 @@ function partMarioDungeonWithSnare() {
     bass2BarsHigh();
     bass2BarsHigh();
 
-    lead1BarRest();
-    lead1BarRest();
-    lead1BarRest();
-    lead1BarRest();
-    lead1BarRest();
-    lead1BarRest();
-    lead1BarRest();
-    lead1BarRest();
+    lead2BarsLow();
+    lead2BarsLow();
+    lead2BarsHigh();
+    lead2BarsHigh();
 
     mid1BarRest();
     mid1BarRest();
@@ -248,6 +244,34 @@ function bass2BarsHigh() {
         .rest('quarter')
     ;
     bass1BarRest()
+}
+
+function lead2BarsLow() {
+    lead
+        .note('quarter', 'F4')
+        .note('quarter', 'F5')
+        .note('quarter', 'D4')
+        .note('quarter', 'D5')
+        .note('quarter', 'D#4')
+        .note('quarter', 'D#5')
+        .rest('quarter')
+        .rest('quarter')
+    ;
+    lead1BarRest();
+}
+
+function lead2BarsHigh() {
+    lead
+        .note('quarter', 'A#4')
+        .note('quarter', 'A#5')
+        .note('quarter', 'G4')
+        .note('quarter', 'G5')
+        .note('quarter', 'G#4')
+        .note('quarter', 'G#5')
+        .rest('quarter')
+        .rest('quarter')
+    ;
+    lead1BarRest();
 }
 
 function lead1BarRest() {

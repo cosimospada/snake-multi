@@ -6,7 +6,7 @@
     const resetBtn = document.getElementById('resetBtn');
     const FRUIT_TYPES = [
         'apple.png', 'banana.png', 'cake.png', 'cherries.png', 'chicken.png',
-        'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png'
+        'doughnut.png', 'firecracker.png', 'hamburger.png', 'hotdog.png', 'pizza.png', 'shield.png', 'crown.png'
     ];
     const fruitImages = {};
     for (const fruit of FRUIT_TYPES) {
@@ -259,25 +259,35 @@
         for (const pl of state.players) {
             if (pl.id === me.id && !pl.alive) imSoDead = true;
             if (!pl.alive) continue; // Only draw alive snakes
+            // Flashing effect for god mode
+            let flashing = pl.godMode;
+            let flashAlpha = 1;
+            if (flashing) {
+                // Flash: alternate alpha every 200ms
+                flashAlpha = (Math.floor(Date.now() / 200) % 2 === 0) ? 0.45 : 1;
+            }
             for (let i = 0; i < pl.body.length; i++) {
                 const seg = pl.body[i];
                 // Skeuomorphic gradient for snake segments
                 const grad = ctx.createLinearGradient(
                     seg.x * cellX, seg.y * cellY, (seg.x + 1) * cellX, (seg.y + 1) * cellY
                 );
-                // Main color
                 grad.addColorStop(0, shadeColor(pl.color, -18));
                 grad.addColorStop(0.4, pl.color);
                 grad.addColorStop(0.7, shadeColor(pl.color, 18));
                 grad.addColorStop(1, shadeColor(pl.color, 32));
+                ctx.save();
+                ctx.globalAlpha = flashAlpha;
                 ctx.fillStyle = grad;
                 roundRect(ctx, seg.x * cellX, seg.y * cellY, cellX, cellY, 5, true);
+                ctx.globalAlpha = 1;
                 // Optional: subtle inner shadow
                 ctx.save();
-                ctx.globalAlpha = 0.18;
+                ctx.globalAlpha = 0.18 * flashAlpha;
                 ctx.strokeStyle = '#000';
                 ctx.lineWidth = 2;
                 roundRect(ctx, seg.x * cellX + 1, seg.y * cellY + 1, cellX - 2, cellY - 2, 4, false);
+                ctx.restore();
                 ctx.restore();
             }
         }
@@ -344,7 +354,7 @@
             el.innerHTML = '';
             return;
         }
-        let html = '<h2>Leaderboard</h2><table><thead><tr><th></th><th>Segments</th><th>Respawns</th><th>Shields</th><th>Bombs</th></tr></thead><tbody>';
+        let html = '<h2>Leaderboard</h2><table><thead><tr><th></th><th>Segments</th><th>Respawns</th><th>Shields</th><th>Bombs</th><th></th></tr></thead><tbody>';
         for (const entry of leaderboard) {
             html += `<tr${entry.alive ? '' : ' class="dead"'}>`;
             html += `<td><span style="display:inline-block;width:1em;height:1em;background:${entry.color};border-radius:50%;margin-right:0.5em;"></span>${entry.name ? entry.name : entry.id.slice(0, 6)}</td>`;
@@ -352,6 +362,7 @@
             html += `<td>${entry.respawns}</td>`;
             html += `<td>${entry.shields || 0}</td>`;
             html += `<td>${entry.bombs || 0}</td>`;
+            html += `<td>${entry.godMode ? '👑' : ''}</td>`;
             html += '</tr>';
         }
         html += '</tbody></table>';
