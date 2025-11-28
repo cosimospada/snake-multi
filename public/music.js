@@ -437,7 +437,7 @@ if (!musicVolume) {
     musicVolume.id = 'musicVolume';
     musicVolume.min = 0;
     musicVolume.max = 100;
-    musicVolume.value = 50;
+    musicVolume.value = 30; // default volume
     musicVolume.style.marginLeft = '1em';
     var hud = document.querySelector('.hud');
     if (hud) hud.appendChild(musicVolume);
