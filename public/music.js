@@ -37,11 +37,11 @@ partMarioDungeon();
 partMarioDungeonWithSnare();
 partMarioDungeonWithSnare();
 
-lead.repeat(400);
-mid.repeat(400);
-bass.repeat(400);
-kick.repeat(400);
-snare.repeat(400);
+lead.repeat(4000);
+mid.repeat(4000);
+bass.repeat(4000);
+kick.repeat(4000);
+snare.repeat(4000);
 highhat.repeat(10000);
 
 function part1() {
