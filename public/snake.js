@@ -141,8 +141,59 @@
             const playerNameEl = document.getElementById('playerName');
             if (playerNameEl) playerNameEl.textContent = info.name;
         }
+        drawSnakePreview(me.color);
         console.log('[joined]', info);
     });
+
+    // Draw a preview of the player's snake in their color
+    function drawSnakePreview(color) {
+        const preview = document.getElementById('snakePreview');
+        if (!preview) return;
+        const ctx2 = preview.getContext('2d');
+        ctx2.clearRect(0, 0, preview.width, preview.height);
+        // No background fill, keep transparent
+        // Remove border if present
+        preview.style.border = 'none';
+        const segs = 5;
+        const cell = 20;
+        const margin = 4;
+        const spacing = cell + 2; // no overlap, 2px gap
+        const y = (preview.height - cell) / 2;
+        for (let i = 0; i < segs; i++) {
+            const x = margin + i * spacing;
+            // Skeuomorphic gradient for preview
+            const grad = ctx2.createLinearGradient(x, y, x + cell, y + cell);
+            grad.addColorStop(0, shadeColor(color, -18));
+            grad.addColorStop(0.4, color);
+            grad.addColorStop(0.7, shadeColor(color, 18));
+            grad.addColorStop(1, shadeColor(color, 32));
+            ctx2.fillStyle = grad;
+            // Draw rounded square (like arena)
+            ctx2.beginPath();
+            const r = 5;
+            ctx2.moveTo(x + r, y);
+            ctx2.arcTo(x + cell, y, x + cell, y + cell, r);
+            ctx2.arcTo(x + cell, y + cell, x, y + cell, r);
+            ctx2.arcTo(x, y + cell, x, y, r);
+            ctx2.arcTo(x, y, x + cell, y, r);
+            ctx2.closePath();
+            ctx2.fill();
+            // Optional: subtle inner shadow
+            ctx2.save();
+            ctx2.globalAlpha = 0.18;
+            ctx2.strokeStyle = '#000';
+            ctx2.lineWidth = 2;
+            ctx2.beginPath();
+            ctx2.moveTo(x + r, y);
+            ctx2.arcTo(x + cell, y, x + cell, y + cell, r);
+            ctx2.arcTo(x + cell, y + cell, x, y + cell, r);
+            ctx2.arcTo(x, y + cell, x, y, r);
+            ctx2.arcTo(x, y, x + cell, y, r);
+            ctx2.closePath();
+            ctx2.stroke();
+            ctx2.restore();
+        }
+    }
 
     // Set canvas size so that grid cells are always square, but the canvas is rectangular
     function resizeCanvasToGrid() {
@@ -165,7 +216,10 @@
         state = s;
         resizeCanvasToGrid();
         const meState = s.players.find(p => p.id === me.id);
-        if (meState) scoreEl.textContent = meState.score;
+        if (meState) {
+            scoreEl.textContent = meState.score;
+            drawSnakePreview(meState.color);
+        }
         updateLeaderboard(s.leaderboard);
         if (!paused) draw();
     });
